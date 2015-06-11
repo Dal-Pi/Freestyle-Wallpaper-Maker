@@ -1,5 +1,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layoutMaker"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="${relativePackage}.${activityClass}" >
@@ -8,5 +9,29 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/hello_world" />
+    
+    
+    
+    <ImageButton 
+        android:id="@+id/imgbtnAddImage"
+        android:layout_width="48dip"
+        android:layout_height="48dip"
+        android:padding="4dip"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"
+        android:src="@drawable/ic_launcher"
+        android:scaleType="fitXY"
+        android:background="@drawable/circle_add_button" />
+    
+    <ImageButton 
+        android:id="@+id/imgbtnSetWallpaper"
+        android:layout_width="48dip"
+        android:layout_height="48dip"
+        android:padding="4dip"
+        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/ic_launcher"
+        android:scaleType="fitXY"
+        android:background="@drawable/circle_set_button" />
 
 </RelativeLayout>
