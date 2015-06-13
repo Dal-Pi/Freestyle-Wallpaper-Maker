@@ -22,12 +22,14 @@ public class ImagePresenter {
 	private Activity mContext;
 	private ViewGroup mlayoutItmes;
 	
-//	private ArrayList<RelativeLayout> mImageList;
+	private boolean mIsAutoAlignMode = true;
+	private final int ALIGN_COLUMN_COUNT = 40; //ROW is using COLUMN's size.
+	
+//	private ArrayList<ImageItemData> mImageList;
 	
 	public ImagePresenter(Activity context, ViewGroup vg) {
 		mContext = context;
 		mlayoutItmes = vg;
-//		mImageList = new ArrayList<RelativeLayout>();
 	}
 	
 	public void getImageFromGallery() {
@@ -59,6 +61,37 @@ public class ImagePresenter {
 		}
 	}
 	
+	
+	public void setIsAutoAlignMode(boolean enable) {
+		mIsAutoAlignMode = enable;
+	}
+	public boolean getIsAutoAlignMode() {
+		return mIsAutoAlignMode;
+	}
+	
+//	public void renewImageItemData(View v, int left, int top, int right, int bottom) {
+//		ImageItemData renewIID = getImageItemData(v);
+//		if (renewIID == null) {
+//			Toast.makeText(mContext, "Cannot fine matched Item", Toast.LENGTH_SHORT).show();
+//			return;
+//		}
+//		renewIID.setSizeInfo(left, top, right, bottom);
+//	}
+//	
+//	public ImageItemData getImageItemData(View v) {
+//		for (ImageItemData iid : mImageList)
+//			if (iid.mItemLayout == v)
+//				return iid;
+//		return null;
+//	}
+	
+//	public void reLocateItems() {
+//		//TODO needed to fix using layout parameters. *****
+//		for (ImageItemData iid : mImageList) {
+//			iid.mItemLayout.layout(iid.mLeft, iid.mTop, iid.mRight, iid.mBottom);
+//		}
+//	}
+	
 	private View.OnTouchListener mUpdownMovableTouchListener = new View.OnTouchListener() {
 		public int savedY = 0;
 		@Override
@@ -85,6 +118,7 @@ public class ImagePresenter {
 					v.setPressed(false);
 					v.performClick();
 				}
+				
 				return true;
 			}
 			return true;
@@ -92,26 +126,42 @@ public class ImagePresenter {
 	};
 	
 	private View.OnTouchListener mMoveAndExpendableTouchListener = new View.OnTouchListener() {
+		int dis2L = 0, dis2T = 0, dis2R = 0, dis2B = 0; //distance to left ... 
 		@Override
 		public boolean onTouch(View v, MotionEvent event) {
 			int action = event.getAction();
 			int x = (int) event.getRawX();
 			int y = (int) event.getRawY();
+			int[] origin = new int[2];
+			v.getLocationInWindow(origin);
+			int width = v.getWidth();
+			int height = v.getHeight();
 			
 			//TODO needed to implement 2 point touch that can resize images.
 			
 			switch (action) {
+			case MotionEvent.ACTION_DOWN:
+				dis2L = x - origin[0];
+				dis2T = y - origin[1];
+				dis2R = origin[0] + width - x;
+				dis2B = origin[1] + height - y;
+				return true;
 			case MotionEvent.ACTION_MOVE:
-				int[] origin = new int[2];
-				v.getLocationInWindow(origin);
-				int width = v.getWidth();
-				int height = v.getHeight();
-				v.layout(x-width/2, y-height/2, x+width/2, y+height/2);
+				if (mIsAutoAlignMode) {
+					int alignInterval = width / ALIGN_COLUMN_COUNT;
+					int leftSub = (x - dis2L) % alignInterval;
+					int topSub = (y - dis2T) % alignInterval;
+					setLocation(v, x-dis2L - leftSub, y-dis2T - topSub, x+dis2R - leftSub, y+dis2B - topSub);
+				} else {
+					setLocation(v, x-dis2L, y-dis2T, x+dis2R, y+dis2B);
+				}
 				return true;
 			}
 			return true;
 		}
 	};
+	
+	
 	
 	private View.OnClickListener mAddbtnCilckListener = new View.OnClickListener() {
 		@Override
@@ -155,4 +205,35 @@ public class ImagePresenter {
 	public View.OnClickListener getSetbtnClickListener() {
 		return mSetbtnCilckListener;
 	}
+
+	public void setLocation(View v, int left, int top, int right, int bottom) {
+		v.layout(left, top, right, bottom);
+		RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) v.getLayoutParams();
+		params.leftMargin = left;
+		params.topMargin = top;
+		params.rightMargin = - right;
+		params.bottomMargin = - bottom;
+		v.setLayoutParams(params);
+	}
+	
+	
+//	public class ImageItemData {
+//		RelativeLayout mItemLayout;
+//		int mLeft;
+//		int mTop;
+//		int mRight;
+//		int mBottom;
+//		
+//		public ImageItemData(RelativeLayout layout, int left, int top, int right, int bottom) {
+//			mItemLayout = layout;
+//			setSizeInfo(left, top, right, bottom);
+//		}
+//		
+//		public void setSizeInfo(int left, int top, int right, int bottom) {
+//			mLeft = left;
+//			mTop = top;
+//			mRight = right;
+//			mBottom = bottom;
+//		}
+//	}
 }
