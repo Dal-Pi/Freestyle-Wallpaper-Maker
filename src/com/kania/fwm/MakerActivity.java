@@ -42,7 +42,6 @@ public class MakerActivity extends Activity{
 				View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
 				View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
 		super.onResume();
-		
 	}
 	
 	

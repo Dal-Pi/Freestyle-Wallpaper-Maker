@@ -25,8 +25,6 @@ public class ImagePresenter {
 	private boolean mIsAutoAlignMode = true;
 	private final int ALIGN_COLUMN_COUNT = 40; //ROW is using COLUMN's size.
 	
-//	private ArrayList<ImageItemData> mImageList;
-	
 	public ImagePresenter(Activity context, ViewGroup vg) {
 		mContext = context;
 		mlayoutItmes = vg;
@@ -68,30 +66,7 @@ public class ImagePresenter {
 	public boolean getIsAutoAlignMode() {
 		return mIsAutoAlignMode;
 	}
-	
-//	public void renewImageItemData(View v, int left, int top, int right, int bottom) {
-//		ImageItemData renewIID = getImageItemData(v);
-//		if (renewIID == null) {
-//			Toast.makeText(mContext, "Cannot fine matched Item", Toast.LENGTH_SHORT).show();
-//			return;
-//		}
-//		renewIID.setSizeInfo(left, top, right, bottom);
-//	}
-//	
-//	public ImageItemData getImageItemData(View v) {
-//		for (ImageItemData iid : mImageList)
-//			if (iid.mItemLayout == v)
-//				return iid;
-//		return null;
-//	}
-	
-//	public void reLocateItems() {
-//		//TODO needed to fix using layout parameters. *****
-//		for (ImageItemData iid : mImageList) {
-//			iid.mItemLayout.layout(iid.mLeft, iid.mTop, iid.mRight, iid.mBottom);
-//		}
-//	}
-	
+
 	private View.OnTouchListener mUpdownMovableTouchListener = new View.OnTouchListener() {
 		public int savedY = 0;
 		@Override
@@ -109,7 +84,7 @@ public class ImagePresenter {
 				v.getLocationInWindow(origin);
 				int width = v.getWidth();
 				int height = v.getHeight();
-				v.layout(origin[0], y-height/2, origin[0]+width, y+height/2);
+				setButtonLocation(v, origin[0], y-height/2, origin[0]+width, y+height/2);
 				return true;
 			case MotionEvent.ACTION_UP:
 				//TODO needed to change using timer.
@@ -151,17 +126,15 @@ public class ImagePresenter {
 					int alignInterval = width / ALIGN_COLUMN_COUNT;
 					int leftSub = (x - dis2L) % alignInterval;
 					int topSub = (y - dis2T) % alignInterval;
-					setLocation(v, x-dis2L - leftSub, y-dis2T - topSub, x+dis2R - leftSub, y+dis2B - topSub);
+					setImageLocation(v, x-dis2L - leftSub, y-dis2T - topSub, x+dis2R - leftSub, y+dis2B - topSub);
 				} else {
-					setLocation(v, x-dis2L, y-dis2T, x+dis2R, y+dis2B);
+					setImageLocation(v, x-dis2L, y-dis2T, x+dis2R, y+dis2B);
 				}
 				return true;
 			}
 			return true;
 		}
 	};
-	
-	
 	
 	private View.OnClickListener mAddbtnCilckListener = new View.OnClickListener() {
 		@Override
@@ -206,7 +179,17 @@ public class ImagePresenter {
 		return mSetbtnCilckListener;
 	}
 
-	public void setLocation(View v, int left, int top, int right, int bottom) {
+	public void setButtonLocation(View v, int left, int top, int right, int bottom) {
+		v.layout(left, top, right, bottom);
+		RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) v.getLayoutParams();
+		params.topMargin = top;
+		params.bottomMargin = - bottom;
+		//when first moving button, remove gravity option. it is for initial point of buttons
+		params.addRule(RelativeLayout.CENTER_VERTICAL, 0);
+		v.setLayoutParams(params);
+	}
+	
+	public void setImageLocation(View v, int left, int top, int right, int bottom) {
 		v.layout(left, top, right, bottom);
 		RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) v.getLayoutParams();
 		params.leftMargin = left;
@@ -215,25 +198,4 @@ public class ImagePresenter {
 		params.bottomMargin = - bottom;
 		v.setLayoutParams(params);
 	}
-	
-	
-//	public class ImageItemData {
-//		RelativeLayout mItemLayout;
-//		int mLeft;
-//		int mTop;
-//		int mRight;
-//		int mBottom;
-//		
-//		public ImageItemData(RelativeLayout layout, int left, int top, int right, int bottom) {
-//			mItemLayout = layout;
-//			setSizeInfo(left, top, right, bottom);
-//		}
-//		
-//		public void setSizeInfo(int left, int top, int right, int bottom) {
-//			mLeft = left;
-//			mTop = top;
-//			mRight = right;
-//			mBottom = bottom;
-//		}
-//	}
 }
