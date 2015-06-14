@@ -123,7 +123,7 @@ public class ImagePresenter {
 				return true;
 			case MotionEvent.ACTION_MOVE:
 				if (mIsAutoAlignMode) {
-					int alignInterval = width / ALIGN_COLUMN_COUNT;
+					int alignInterval = mlayoutItmes.getWidth() / ALIGN_COLUMN_COUNT;
 					int leftSub = (x - dis2L) % alignInterval;
 					int topSub = (y - dis2T) % alignInterval;
 					setImageLocation(v, x-dis2L - leftSub, y-dis2T - topSub, x+dis2R - leftSub, y+dis2B - topSub);
