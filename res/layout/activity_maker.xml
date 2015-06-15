@@ -12,18 +12,13 @@
         android:background="#FFFFFFFF"
         >
     </RelativeLayout>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/hello_world" />
     
     <Button 
         android:id="@+id/btnAddImage"
         android:layout_width="48dip"
         android:layout_height="48dip"
         android:padding="5dip"
-        android:elevation="10dip"
+        android:elevation="5dip"
         android:layout_centerVertical="true"
         android:layout_alignParentLeft="true"
         android:text="+\nAdd"
@@ -37,7 +32,7 @@
         android:layout_width="48dip"
         android:layout_height="48dip"
         android:padding="5dip"
-        android:elevation="10dip"
+        android:elevation="5dip"
         android:layout_centerVertical="true"
         android:layout_alignParentRight="true"
         android:text="Set"

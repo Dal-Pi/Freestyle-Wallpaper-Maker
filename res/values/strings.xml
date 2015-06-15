@@ -3,5 +3,10 @@
 
     <string name="app_name">Freestyle Wallpaper Maker</string>
     <string name="hello_world">Hello world!</string>
+    
+    <string-array name="background_colors" >
+        <item>White</item> 
+        <item>Black</item> 
+        </string-array>
 
 </resources>

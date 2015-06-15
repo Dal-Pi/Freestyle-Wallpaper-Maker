@@ -8,8 +8,11 @@ import java.util.Calendar;
 
 import android.R.menu;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore.Images;
@@ -44,7 +47,8 @@ public class ImagePresenter {
 	
 	private boolean mIsAutoAlignMode = true;
 	
-	//TODO needed to implements color picker
+	private View mNowTouchView = null;
+	
 	
 	public ImagePresenter(Activity context, ViewGroup vg) {
 		mContext = context;
@@ -61,15 +65,13 @@ public class ImagePresenter {
 	public void addNewItemToMaker(Uri uri) {
 		try {
 			Bitmap bitmap = Images.Media.getBitmap(mContext.getContentResolver(), uri);
-			if (bitmap != null) {
-				ImageView image = new ImageView(mContext);
-				image.setImageBitmap(bitmap);
-				image.setScaleType(ScaleType.CENTER_CROP);
-				image.setOnTouchListener(getImageTouchListener());
-				mContext.registerForContextMenu(image);
-				mlayoutItmes.addView(image);
-			}
-			
+			ImageView image = new ImageView(mContext);
+			image.setImageBitmap(bitmap);
+			image.setScaleType(ScaleType.CENTER_CROP);
+			image.setImageBitmap(bitmap);
+			image.setOnTouchListener(getImageTouchListener());
+			mContext.registerForContextMenu(image);
+			mlayoutItmes.addView(image);
 		} catch (FileNotFoundException e) {
 			Toast.makeText(mContext, "Cannot find file : " + uri.getPath(), Toast.LENGTH_SHORT).show();
 			e.printStackTrace();
@@ -103,6 +105,7 @@ public class ImagePresenter {
 		case CONTEXT_MENU_INDEX_CANCEL:
 			break;
 		}
+		hideStatusAndNavibar();
 	}
 	
 	public void setIsAutoAlignMode(boolean enable) {
@@ -110,6 +113,13 @@ public class ImagePresenter {
 	}
 	public boolean getIsAutoAlignMode() {
 		return mIsAutoAlignMode;
+	}
+	
+	public void hideStatusAndNavibar() {
+		View decorView = mContext.getWindow().getDecorView();
+		decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN |
+				View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
+				View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
 	}
 
 	private View.OnTouchListener mUpdownMovableTouchListener = new View.OnTouchListener() {
@@ -153,6 +163,9 @@ public class ImagePresenter {
 		
 		@Override
 		public boolean onTouch(View v, MotionEvent event) {
+			//condition for synchronization.
+			if (mNowTouchView != null && mNowTouchView != v)
+				return true;
 			int action = event.getActionMasked();
 			int x = (int) event.getRawX();
 			int y = (int) event.getRawY();
@@ -160,8 +173,6 @@ public class ImagePresenter {
 			v.getLocationInWindow(origin);
 			int width = v.getWidth();
 			int height = v.getHeight();
-			
-			//TODO needed to synchronization condition (really is it needs?).
 			
 			switch (action) {
 			case MotionEvent.ACTION_DOWN:
@@ -172,6 +183,7 @@ public class ImagePresenter {
 				savedX = x;
 				savedY = y;
 				touchMode = TOUCH_MODE_DRAG;
+				mNowTouchView = v;
 				return true;
 			case MotionEvent.ACTION_MOVE:
 				if (touchMode == TOUCH_MODE_DRAG) {
@@ -224,6 +236,7 @@ public class ImagePresenter {
 					v.performLongClick();
 				}
 				touchMode = TOUCH_MODE_NONE;
+				mNowTouchView = null;
 				return true;
 			case MotionEvent.ACTION_POINTER_UP:
 				touchMode = TOUCH_MODE_NONE;
@@ -261,12 +274,35 @@ public class ImagePresenter {
 		}
 	};
 	
-	private View.OnClickListener mImageClickListener = new View.OnClickListener() {
-		@Override
-		public void onClick(View v) {
-			// TODO support context menu
-			
+	private View.OnLongClickListener mBackgroundClickListener = new View.OnLongClickListener() {
+		public boolean onLongClick(View v) {
+			//TODO (needs to be improved) make dialog for color pick
+			new AlertDialog.Builder(mContext)
+			.setTitle("Background Color")
+			.setItems(R.array.background_colors, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					String[] color = mContext.getResources().getStringArray(R.array.background_colors);
+					if ("White".equalsIgnoreCase(color[which])) {
+						mlayoutItmes.setBackgroundColor(Color.WHITE); mlayoutItmes.invalidate();
+						Toast.makeText(mContext, "White", Toast.LENGTH_SHORT).show();
+					} else if ("Black".equalsIgnoreCase(color[which])) {
+						mlayoutItmes.setBackgroundColor(Color.BLACK); mlayoutItmes.invalidate();
+						Toast.makeText(mContext, "Black", Toast.LENGTH_SHORT).show();
+					}
+					hideStatusAndNavibar();
+				}
+			})
+			.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					hideStatusAndNavibar();
+				}
+			})
+			.show();
+			return false;
 		}
+		
 	};
 	
 	public View.OnTouchListener getButtonTouchListener() {
@@ -283,6 +319,10 @@ public class ImagePresenter {
 	
 	public View.OnClickListener getSetbtnClickListener() {
 		return mSetbtnCilckListener;
+	}
+	
+	public View.OnLongClickListener getBackgroundClickListener() {
+		return mBackgroundClickListener;
 	}
 
 	public void setButtonLocation(View v, int left, int top, int right, int bottom) {
@@ -316,7 +356,6 @@ public class ImagePresenter {
 	}
 	
 	public void saveWallpaperToFile(Bitmap wallpaper) {
-		//TODO with setting image to wallpaper, save image to file for user set it to lockscreen image.
 		String projectPath = Environment.getExternalStorageDirectory().getAbsolutePath();
 		File dir = new File(projectPath + "/" + PATH_PROJECT_NAME);
 		if (!dir.exists()) {

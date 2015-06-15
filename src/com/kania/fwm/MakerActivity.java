@@ -33,6 +33,8 @@ public class MakerActivity extends Activity{
 		
 		presenter = new ImagePresenter(this, layoutItems);
 		
+		layoutItems.setOnLongClickListener(presenter.getBackgroundClickListener());
+		
 		mbtnAdd.setOnTouchListener(presenter.getButtonTouchListener());
 		mbtnAdd.setOnClickListener(presenter.getAddbtnClickListener());
 		mbtnSet.setOnTouchListener(presenter.getButtonTouchListener());

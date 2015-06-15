@@ -1,0 +1,63 @@
+[33mcommit 5eb487e05929fc0f44559012ff84a723f72e9840[m
+Author: Dal-Pi <kimsh707@naver.com>
+Date:   Sun Jun 14 17:34:57 2015 +0900
+
+    [150614] issue fixed
+    
+    changed moving interval using window's width
+
+[33mcommit 01d443f23102dea1bcc7602e452a437d9fe4170b[m
+Author: Dal-Pi <kimsh707@naver.com>
+Date:   Sun Jun 14 13:41:45 2015 +0900
+
+    [20150614] fixed issue
+    
+    fixed initialized location of buttons when moving items.
+
+[33mcommit 6697b6dcb0c99893361a276b451f2a1657c101f0[m
+Author: Dal-Pi <kimsh707@naver.com>
+Date:   Sun Jun 14 02:51:22 2015 +0900
+
+    [150614] add auto-align codes
+    
+    added permission to access on SD card
+    addde auto-align that can move having interval
+    fixed when activity is onResume all of items became to hold thire own
+    location
+
+[33mcommit b68df9b39274378afdb85c3af8c668cfc175452b[m
+Author: Dal-Pi <kimsh707@naver.com>
+Date:   Sat Jun 13 04:11:09 2015 +0900
+
+    [150613] add functions
+    
+    implement adding image items
+    divided layout to button layout and inner layout used to add image items
+    add permission for set wallpapar
+
+[33mcommit 2bb8eceaef5d6a2aade44a7b6a6d338206813a59[m
+Author: Dal-Pi <kimsh707@naver.com>
+Date:   Fri Jun 12 02:21:37 2015 +0900
+
+    [150612] add presenter
+    
+    add presenter for study MVP pattern
+    add listener for button
+
+[33mcommit a8a5a817d8d38f7c6f878161a0b63987522c22ad[m
+Author: Dal-Pi <kimsh707@naver.com>
+Date:   Mon Jun 8 02:25:01 2015 +0900
+
+    [150608] (test) change layout name
+
+[33mcommit fbb66c1f31b005a85b6e115bc2a61f7d97960760[m
+Author: Dal-Pi <kimsh707@naver.com>
+Date:   Mon Jun 8 02:16:47 2015 +0900
+
+    [150608] initial commit as a android project
+
+[33mcommit 8ba11f18f3b4fb5966026024b18c971ac7a87899[m
+Author: Dal-Pi <kimsh707@naver.com>
+Date:   Mon Jun 8 01:15:32 2015 +0900
+
+    Initial commit
