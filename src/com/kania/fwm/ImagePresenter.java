@@ -3,27 +3,38 @@ package com.kania.fwm;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import android.app.ActionBar.LayoutParams;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore.Images;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.MotionEvent.PointerCoords;
+import android.view.ViewGroupOverlay;
 import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 public class ImagePresenter {
+	private final int ALIGN_COLUMN_COUNT = 40; //ROW is using COLUMN's size.
+	private final int MINIMUM_SIZE_OF_IMAGE_RATE = 10; //ROW is using COLUMN's size.
+	private final int TOUCH_MODE_NONE = 0;
+	private final int TOUCH_MODE_DRAG = 1;
+	private final int TOUCH_MODE_ZOOM = 2;
 	
 	private Activity mContext;
 	private ViewGroup mlayoutItmes;
 	
 	private boolean mIsAutoAlignMode = true;
-	private final int ALIGN_COLUMN_COUNT = 40; //ROW is using COLUMN's size.
+	
 	
 	public ImagePresenter(Activity context, ViewGroup vg) {
 		mContext = context;
@@ -41,13 +52,11 @@ public class ImagePresenter {
 		try {
 			Bitmap bitmap = Images.Media.getBitmap(mContext.getContentResolver(), uri);
 			if (bitmap != null) {
-				LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-				RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.layout_item, null);
 				ImageView image = new ImageView(mContext);
 				image.setImageBitmap(bitmap);
-				layout.addView(image);
-				layout.setOnTouchListener(getImageTouchListener());
-				mlayoutItmes.addView(layout);
+				image.setScaleType(ScaleType.CENTER_CROP);
+				image.setOnTouchListener(getImageTouchListener());
+				mlayoutItmes.addView(image);
 			}
 			
 		} catch (FileNotFoundException e) {
@@ -58,7 +67,6 @@ public class ImagePresenter {
 			e.printStackTrace();
 		}
 	}
-	
 	
 	public void setIsAutoAlignMode(boolean enable) {
 		mIsAutoAlignMode = enable;
@@ -102,9 +110,13 @@ public class ImagePresenter {
 	
 	private View.OnTouchListener mMoveAndExpendableTouchListener = new View.OnTouchListener() {
 		int dis2L = 0, dis2T = 0, dis2R = 0, dis2B = 0; //distance to left ... 
+		//used to two pointer action
+		int disWidthOri = 0, disHeightOri = 0; // original distance 
+		int touchMode = TOUCH_MODE_NONE;
+		
 		@Override
 		public boolean onTouch(View v, MotionEvent event) {
-			int action = event.getAction();
+			int action = event.getActionMasked();
 			int x = (int) event.getRawX();
 			int y = (int) event.getRawY();
 			int[] origin = new int[2];
@@ -112,7 +124,7 @@ public class ImagePresenter {
 			int width = v.getWidth();
 			int height = v.getHeight();
 			
-			//TODO needed to implement 2 point touch that can resize images.
+			//TODO needed to synchronization condition (really is it needs?).
 			
 			switch (action) {
 			case MotionEvent.ACTION_DOWN:
@@ -120,19 +132,59 @@ public class ImagePresenter {
 				dis2T = y - origin[1];
 				dis2R = origin[0] + width - x;
 				dis2B = origin[1] + height - y;
+				touchMode = TOUCH_MODE_DRAG;
 				return true;
 			case MotionEvent.ACTION_MOVE:
-				if (mIsAutoAlignMode) {
-					int alignInterval = mlayoutItmes.getWidth() / ALIGN_COLUMN_COUNT;
-					int leftSub = (x - dis2L) % alignInterval;
-					int topSub = (y - dis2T) % alignInterval;
-					setImageLocation(v, x-dis2L - leftSub, y-dis2T - topSub, x+dis2R - leftSub, y+dis2B - topSub);
-				} else {
-					setImageLocation(v, x-dis2L, y-dis2T, x+dis2R, y+dis2B);
+				if (touchMode == TOUCH_MODE_DRAG) {
+					if (mIsAutoAlignMode) {
+						int alignInterval = mlayoutItmes.getWidth() / ALIGN_COLUMN_COUNT;
+						int leftSub = (x - dis2L) % alignInterval;
+						int topSub = (y - dis2T) % alignInterval;
+						setImageLocation(v, x-dis2L - leftSub, y-dis2T - topSub, x+dis2R - leftSub, y+dis2B - topSub);
+					} else {
+						setImageLocation(v, x-dis2L, y-dis2T, x+dis2R, y+dis2B);
+					}
+					return true;
+				} else if (touchMode == TOUCH_MODE_ZOOM) {
+					int disWidthNew = getDistance((int)event.getX(0), (int)event.getX(1));
+					int disHeightNew = getDistance((int)event.getY(0), (int)event.getY(1));
+					int disGapWidth = disWidthNew - disWidthOri;
+					int disGapHeight = disHeightNew - disHeightOri; 
+					if (Math.abs(disGapWidth) > Math.abs(disGapHeight)) {
+						//width case
+						float ratio = (float) height / (float) width;
+						setImageLocation(v,
+								origin[0],
+								origin[1],
+								origin[0] + width + disGapWidth,
+								origin[1] + Math.round((width + disGapWidth)*ratio)
+								);
+					} else {
+						//height case
+						float ratio = (float) width / (float) height;
+						v.layout(
+								origin[0],
+								origin[1],
+								origin[0] + Math.round((height + disGapHeight)*ratio),
+								origin[1] + height + disGapHeight
+								);
+					}
+					disWidthOri = disWidthNew;
+					disHeightOri = disHeightNew;
 				}
 				return true;
+			case MotionEvent.ACTION_POINTER_DOWN:
+				disWidthOri = getDistance((int)event.getX(0), (int)event.getX(1));
+				disHeightOri = getDistance((int)event.getY(0), (int)event.getY(1)); 
+				touchMode = TOUCH_MODE_ZOOM;
+				return true;
+			case MotionEvent.ACTION_UP:
+			case MotionEvent.ACTION_POINTER_UP:
+				touchMode = TOUCH_MODE_NONE;
+				return true;
+				
 			}
-			return true;
+			return false;
 		}
 	};
 	
@@ -149,6 +201,7 @@ public class ImagePresenter {
 			mlayoutItmes.setDrawingCacheEnabled(true);
 			Bitmap wallpaper = mlayoutItmes.getDrawingCache();
 			//TODO with setting image to wallpaper, save image to file for user set it to lockscreen image.
+			
 			if (wallpaper != null) {
 				try {
 					//TODO try to using wallpapermanager
@@ -190,12 +243,22 @@ public class ImagePresenter {
 	}
 	
 	public void setImageLocation(View v, int left, int top, int right, int bottom) {
+		//if image size is smaller than 1/100 of window size, cancel.
+		if ((right - left) < (mlayoutItmes.getWidth() / MINIMUM_SIZE_OF_IMAGE_RATE) ||
+				(bottom - top) < (mlayoutItmes.getWidth() / MINIMUM_SIZE_OF_IMAGE_RATE))
+			return;
 		v.layout(left, top, right, bottom);
 		RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) v.getLayoutParams();
 		params.leftMargin = left;
 		params.topMargin = top;
 		params.rightMargin = - right;
 		params.bottomMargin = - bottom;
+		params.width = v.getWidth();
+		params.height = v.getHeight();
 		v.setLayoutParams(params);
+	}
+	
+	public int getDistance(int p1, int p2) {
+		return Math.abs(p2 - p1);
 	}
 }
