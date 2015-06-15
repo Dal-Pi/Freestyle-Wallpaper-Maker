@@ -1,25 +1,22 @@
 package com.kania.fwm;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Calendar;
 
-import android.app.ActionBar.LayoutParams;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Environment;
 import android.provider.MediaStore.Images;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.MotionEvent.PointerCoords;
-import android.view.ViewGroupOverlay;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -29,6 +26,7 @@ public class ImagePresenter {
 	private final int TOUCH_MODE_NONE = 0;
 	private final int TOUCH_MODE_DRAG = 1;
 	private final int TOUCH_MODE_ZOOM = 2;
+	public static final String PATH_PROJECT_NAME = "FWM"; 
 	
 	private Activity mContext;
 	private ViewGroup mlayoutItmes;
@@ -200,12 +198,11 @@ public class ImagePresenter {
 		public void onClick(View v) {
 			mlayoutItmes.setDrawingCacheEnabled(true);
 			Bitmap wallpaper = mlayoutItmes.getDrawingCache();
-			//TODO with setting image to wallpaper, save image to file for user set it to lockscreen image.
-			
 			if (wallpaper != null) {
 				try {
 					//TODO try to using wallpapermanager
 					mContext.setWallpaper(wallpaper);
+					saveWallpaperToFile(wallpaper);
 					mContext.finish();
 				} catch (IOException e) {
 					Toast.makeText(mContext, "Occured an error to set image as wallpaper", Toast.LENGTH_SHORT).show();
@@ -260,5 +257,26 @@ public class ImagePresenter {
 	
 	public int getDistance(int p1, int p2) {
 		return Math.abs(p2 - p1);
+	}
+	
+	public void saveWallpaperToFile(Bitmap wallpaper) {
+		//TODO with setting image to wallpaper, save image to file for user set it to lockscreen image.
+		String projectPath = Environment.getExternalStorageDirectory().getAbsolutePath();
+		File dir = new File(projectPath + "/" + PATH_PROJECT_NAME);
+		if (!dir.exists()) {
+			dir.mkdir();
+		}
+		Calendar calendar = Calendar.getInstance();
+		String filename = "fwm_" + calendar.getTimeInMillis() + ".png";
+		try {
+			File filepath = new File(projectPath + "/" + PATH_PROJECT_NAME + "/" +filename);
+			FileOutputStream fos = new FileOutputStream(filepath);
+			wallpaper.compress(Bitmap.CompressFormat.PNG, 100, fos);
+			mContext.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(filepath)));
+			Toast.makeText(mContext, "save to file : " + projectPath + "/" + PATH_PROJECT_NAME + "/" +filename, Toast.LENGTH_LONG).show();
+		} catch (FileNotFoundException e) {
+			Toast.makeText(mContext, "error occured on save wallpaper to file!", Toast.LENGTH_SHORT).show();
+			e.printStackTrace();
+		}
 	}
 }
