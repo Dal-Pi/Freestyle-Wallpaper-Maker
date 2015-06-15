@@ -18,25 +18,31 @@
         android:layout_height="wrap_content"
         android:text="@string/hello_world" />
     
-    <ImageButton 
-        android:id="@+id/imgbtnAddImage"
+    <Button 
+        android:id="@+id/btnAddImage"
         android:layout_width="48dip"
         android:layout_height="48dip"
-        android:padding="4dip"
+        android:padding="5dip"
+        android:elevation="10dip"
         android:layout_centerVertical="true"
         android:layout_alignParentLeft="true"
-        android:src="@drawable/ic_launcher"
+        android:text="+\nAdd"
+        android:textColor="#FFFFFF"
+        android:textSize="12dip"
         android:scaleType="fitXY"
         android:background="@drawable/circle_add_button" />
     
-    <ImageButton 
-        android:id="@+id/imgbtnSetWallpaper"
+    <Button 
+        android:id="@+id/btnSetWallpaper"
         android:layout_width="48dip"
         android:layout_height="48dip"
-        android:padding="4dip"
+        android:padding="5dip"
+        android:elevation="10dip"
         android:layout_centerVertical="true"
         android:layout_alignParentRight="true"
-        android:src="@drawable/ic_launcher"
+        android:text="Set"
+        android:textColor="#FFFFFF"
+        android:textSize="12dip"
         android:scaleType="fitXY"
         android:background="@drawable/circle_set_button" />
 

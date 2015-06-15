@@ -4,14 +4,18 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 
 public class MakerActivity extends Activity{
 	RelativeLayout layoutMaker;
 	RelativeLayout layoutItems;
-	ImageButton mImgbtnAdd, mImgbtnSet;
+	Button mbtnAdd, mbtnSet;
 	
 	ImagePresenter presenter;
 	
@@ -23,16 +27,16 @@ public class MakerActivity extends Activity{
 		setContentView(R.layout.activity_maker);
 		
 		layoutMaker = (RelativeLayout) findViewById(R.id.layoutMaker);
-		mImgbtnAdd = (ImageButton) findViewById(R.id.imgbtnAddImage);
-		mImgbtnSet = (ImageButton) findViewById(R.id.imgbtnSetWallpaper);
+		mbtnAdd = (Button) findViewById(R.id.btnAddImage);
+		mbtnSet = (Button) findViewById(R.id.btnSetWallpaper);
 		layoutItems = (RelativeLayout) findViewById(R.id.layoutItems);
 		
 		presenter = new ImagePresenter(this, layoutItems);
 		
-		mImgbtnAdd.setOnTouchListener(presenter.getButtonTouchListener());
-		mImgbtnAdd.setOnClickListener(presenter.getAddbtnClickListener());
-		mImgbtnSet.setOnTouchListener(presenter.getButtonTouchListener());
-		mImgbtnSet.setOnClickListener(presenter.getSetbtnClickListener());
+		mbtnAdd.setOnTouchListener(presenter.getButtonTouchListener());
+		mbtnAdd.setOnClickListener(presenter.getAddbtnClickListener());
+		mbtnSet.setOnTouchListener(presenter.getButtonTouchListener());
+		mbtnSet.setOnClickListener(presenter.getSetbtnClickListener());
 	}
 	
 	@Override
@@ -44,6 +48,18 @@ public class MakerActivity extends Activity{
 		super.onResume();
 	}
 	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+			ContextMenuInfo menuInfo) {
+		presenter.requestMakeContextMenu(menu, v, menuInfo);
+		super.onCreateContextMenu(menu, v, menuInfo);
+	}
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		presenter.requestHandleMenuSelect(item.getItemId());
+		return super.onContextItemSelected(item);
+	}
 	
 	
 	@Override

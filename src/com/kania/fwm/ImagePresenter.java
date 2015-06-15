@@ -6,15 +6,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Calendar;
 
+import android.R.menu;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore.Images;
+import android.view.ContextMenu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.RelativeLayout;
@@ -22,17 +25,26 @@ import android.widget.Toast;
 
 public class ImagePresenter {
 	private final int ALIGN_COLUMN_COUNT = 40; //ROW is using COLUMN's size.
+	private final int CLICK_RECONIZE_CRITICAL_POINT = 20; //ROW is using COLUMN's size.
 	private final int MINIMUM_SIZE_OF_IMAGE_RATE = 10; //ROW is using COLUMN's size.
 	private final int TOUCH_MODE_NONE = 0;
 	private final int TOUCH_MODE_DRAG = 1;
 	private final int TOUCH_MODE_ZOOM = 2;
-	public static final String PATH_PROJECT_NAME = "FWM"; 
+	public static final String PATH_PROJECT_NAME = "FWM";
+	
+	private final int CONTEXT_MENU_INDEX_CANCEL = 0;
+	private final int CONTEXT_MENU_INDEX_REMOVE = 1;
+	private final int CONTEXT_MENU_INDEX_TOP = 2;
+//	private final int CONTEXT_MENU_INDEX_END = 3;
 	
 	private Activity mContext;
 	private ViewGroup mlayoutItmes;
 	
+	private ImageView mSelectedView;
+	
 	private boolean mIsAutoAlignMode = true;
 	
+	//TODO needed to implements color picker
 	
 	public ImagePresenter(Activity context, ViewGroup vg) {
 		mContext = context;
@@ -54,6 +66,7 @@ public class ImagePresenter {
 				image.setImageBitmap(bitmap);
 				image.setScaleType(ScaleType.CENTER_CROP);
 				image.setOnTouchListener(getImageTouchListener());
+				mContext.registerForContextMenu(image);
 				mlayoutItmes.addView(image);
 			}
 			
@@ -63,6 +76,32 @@ public class ImagePresenter {
 		} catch (IOException e) {
 			Toast.makeText(mContext, "Occured an error to load image", Toast.LENGTH_SHORT).show();
 			e.printStackTrace();
+		}
+	}
+	
+	public void requestMakeContextMenu(ContextMenu menu, View v,
+			ContextMenuInfo menuInfo) {
+		menu.add(0, CONTEXT_MENU_INDEX_REMOVE, 0, "Delete");
+		menu.add(0, CONTEXT_MENU_INDEX_TOP, 0, "Send to Top (Z-order)");
+//		menu.add(0, CONTEXT_MENU_INDEX_END, 0, "Send to End (z-layer)");
+		menu.add(0, CONTEXT_MENU_INDEX_CANCEL, 0, "Cancel");
+		mSelectedView = (ImageView) v;
+	}
+	
+	public void requestHandleMenuSelect(int menuId) {
+		switch (menuId) {
+		case CONTEXT_MENU_INDEX_REMOVE:
+			if (mSelectedView != null) {
+				mlayoutItmes.removeView(mSelectedView);
+				mSelectedView = null;
+			}
+			break;
+		case CONTEXT_MENU_INDEX_TOP:
+			if (mSelectedView != null)
+				mlayoutItmes.bringChildToFront(mSelectedView);
+			break;
+		case CONTEXT_MENU_INDEX_CANCEL:
+			break;
 		}
 	}
 	
@@ -93,9 +132,8 @@ public class ImagePresenter {
 				setButtonLocation(v, origin[0], y-height/2, origin[0]+width, y+height/2);
 				return true;
 			case MotionEvent.ACTION_UP:
-				//TODO needed to change using timer.
 				int  viewHeight = v.getHeight();
-				if (Math.abs(savedY - y) < viewHeight/2) {
+				if (Math.abs(savedY - y) < CLICK_RECONIZE_CRITICAL_POINT) {
 					v.setPressed(false);
 					v.performClick();
 				}
@@ -108,6 +146,7 @@ public class ImagePresenter {
 	
 	private View.OnTouchListener mMoveAndExpendableTouchListener = new View.OnTouchListener() {
 		int dis2L = 0, dis2T = 0, dis2R = 0, dis2B = 0; //distance to left ... 
+		int savedX = 0, savedY = 0;
 		//used to two pointer action
 		int disWidthOri = 0, disHeightOri = 0; // original distance 
 		int touchMode = TOUCH_MODE_NONE;
@@ -130,6 +169,8 @@ public class ImagePresenter {
 				dis2T = y - origin[1];
 				dis2R = origin[0] + width - x;
 				dis2B = origin[1] + height - y;
+				savedX = x;
+				savedY = y;
 				touchMode = TOUCH_MODE_DRAG;
 				return true;
 			case MotionEvent.ACTION_MOVE:
@@ -177,6 +218,13 @@ public class ImagePresenter {
 				touchMode = TOUCH_MODE_ZOOM;
 				return true;
 			case MotionEvent.ACTION_UP:
+				if (touchMode == TOUCH_MODE_DRAG &&
+				(Math.abs(savedX - x) < CLICK_RECONIZE_CRITICAL_POINT) && 
+				(Math.abs(savedY - y) < CLICK_RECONIZE_CRITICAL_POINT)) {
+					v.performLongClick();
+				}
+				touchMode = TOUCH_MODE_NONE;
+				return true;
 			case MotionEvent.ACTION_POINTER_UP:
 				touchMode = TOUCH_MODE_NONE;
 				return true;
@@ -209,6 +257,14 @@ public class ImagePresenter {
 					e.printStackTrace();
 				}
 			}
+			
+		}
+	};
+	
+	private View.OnClickListener mImageClickListener = new View.OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			// TODO support context menu
 			
 		}
 	};
