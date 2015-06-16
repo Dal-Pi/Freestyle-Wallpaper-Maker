@@ -63,15 +63,40 @@ public class ImagePresenter {
 	}
 	
 	public void addNewItemToMaker(Uri uri) {
+		//			Bitmap bitmap = Images.Media.getBitmap(mContext.getContentResolver(), uri);
+		Bitmap bitmap = getResizedBitmapIfNeed(uri);
+		ImageView image = new ImageView(mContext);
+		image.setImageBitmap(bitmap);
+		image.setScaleType(ScaleType.CENTER_CROP);
+		image.setImageBitmap(bitmap);
+		image.setOnTouchListener(getImageTouchListener());
+		mContext.registerForContextMenu(image);
+		mlayoutItmes.addView(image);
+	}
+	
+	public Bitmap getResizedBitmapIfNeed(Uri uri) {
+		Bitmap resizedBitmap = null;
 		try {
 			Bitmap bitmap = Images.Media.getBitmap(mContext.getContentResolver(), uri);
-			ImageView image = new ImageView(mContext);
-			image.setImageBitmap(bitmap);
-			image.setScaleType(ScaleType.CENTER_CROP);
-			image.setImageBitmap(bitmap);
-			image.setOnTouchListener(getImageTouchListener());
-			mContext.registerForContextMenu(image);
-			mlayoutItmes.addView(image);
+			int bitmapWidth = bitmap.getWidth();
+			int bitmapHeight = bitmap.getHeight();
+			int layoutWidth = mlayoutItmes.getWidth();
+			int layoutHeight = mlayoutItmes.getHeight();
+			
+			if (layoutWidth >= bitmapWidth && layoutHeight >= bitmapHeight) {
+				return bitmap;
+			} else {
+				float bitmapRatio = (float) bitmapWidth / (float) bitmapHeight;
+				float layoutRatio = (float) layoutWidth / (float) layoutHeight;
+				
+				if (layoutRatio < bitmapRatio) {
+					resizedBitmap = Bitmap.createScaledBitmap(bitmap, layoutWidth, (int) (layoutWidth / bitmapRatio), true);
+				} else if (layoutRatio == bitmapRatio) {
+					resizedBitmap = Bitmap.createScaledBitmap(bitmap, layoutWidth, layoutHeight, true);
+				} else {
+					resizedBitmap = Bitmap.createScaledBitmap(bitmap, (int) (layoutHeight * bitmapRatio), layoutHeight, true);
+				}
+			}
 		} catch (FileNotFoundException e) {
 			Toast.makeText(mContext, "Cannot find file : " + uri.getPath(), Toast.LENGTH_SHORT).show();
 			e.printStackTrace();
@@ -79,6 +104,8 @@ public class ImagePresenter {
 			Toast.makeText(mContext, "Occured an error to load image", Toast.LENGTH_SHORT).show();
 			e.printStackTrace();
 		}
+
+		return resizedBitmap;
 	}
 	
 	public void requestMakeContextMenu(ContextMenu menu, View v,
