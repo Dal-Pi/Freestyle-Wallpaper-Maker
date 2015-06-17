@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.Calendar;
 
-import android.R.menu;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -16,11 +16,14 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore.Images;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.RelativeLayout;
@@ -80,20 +83,30 @@ public class ImagePresenter {
 			Bitmap bitmap = Images.Media.getBitmap(mContext.getContentResolver(), uri);
 			int bitmapWidth = bitmap.getWidth();
 			int bitmapHeight = bitmap.getHeight();
-			int layoutWidth = mlayoutItmes.getWidth();
-			int layoutHeight = mlayoutItmes.getHeight();
+			DisplayMetrics metrics = new DisplayMetrics();
+			Display display = mContext.getWindowManager().getDefaultDisplay();
+//			Method methodGetRawW = null, methodGetRawH = null; //get real size of phone - for JB (API17) and onward
+			display.getRealMetrics(metrics);
+//			int layoutWidth = mlayoutItmes.getWidth();
+//			int layoutHeight = mlayoutItmes.getHeight();
+			int layoutWidth = metrics.widthPixels;
+			int layoutHeight = metrics.heightPixels;
 			
 			if (layoutWidth >= bitmapWidth && layoutHeight >= bitmapHeight) {
 				return bitmap;
 			} else {
 				float bitmapRatio = (float) bitmapWidth / (float) bitmapHeight;
+				Log.d("FWM", "bitmapWidth = " + " / bitmapScale = " + bitmapWidth + ", " + bitmapHeight);
 				float layoutRatio = (float) layoutWidth / (float) layoutHeight;
-				
+				Log.d("FWM", "layoutRatio = " + " / layoutScale = " + layoutWidth + ", " + layoutHeight);
 				if (layoutRatio < bitmapRatio) {
+					Log.d("FWM", "scaled case  layoutRatio < bitmapRatio / scale = " + layoutWidth + ", " + (int) (layoutWidth / bitmapRatio));
 					resizedBitmap = Bitmap.createScaledBitmap(bitmap, layoutWidth, (int) (layoutWidth / bitmapRatio), true);
 				} else if (layoutRatio == bitmapRatio) {
+					Log.d("FWM", "scaled case  layoutRatio == bitmapRatio / scale = " + layoutWidth + ", " + layoutHeight);
 					resizedBitmap = Bitmap.createScaledBitmap(bitmap, layoutWidth, layoutHeight, true);
 				} else {
+					Log.d("FWM", "scaled case  layoutRatio > bitmapRatio / scale = " + (int) (layoutHeight * bitmapRatio) + ", " + layoutHeight);
 					resizedBitmap = Bitmap.createScaledBitmap(bitmap, (int) (layoutHeight * bitmapRatio), layoutHeight, true);
 				}
 			}
