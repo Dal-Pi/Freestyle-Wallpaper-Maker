@@ -66,10 +66,12 @@ public class ImagePresenter {
 	}
 	
 	public void addNewItemToMaker(Uri uri) {
+		//case 1. occurred Out Of Memory exception and cannot load image to imageview
 		//			Bitmap bitmap = Images.Media.getBitmap(mContext.getContentResolver(), uri);
+		
+		//case 2. 
 		Bitmap bitmap = getResizedBitmapIfNeed(uri);
 		ImageView image = new ImageView(mContext);
-		image.setImageBitmap(bitmap);
 		image.setScaleType(ScaleType.CENTER_CROP);
 		image.setImageBitmap(bitmap);
 		image.setOnTouchListener(getImageTouchListener());
