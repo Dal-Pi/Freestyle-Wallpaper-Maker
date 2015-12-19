@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
+import android.nfc.NfcAdapter.CreateBeamUrisCallback;
 import android.os.Environment;
 import android.provider.MediaStore.Images;
 import android.util.DisplayMetrics;
@@ -319,7 +320,7 @@ public class ImagePresenter {
 	private View.OnLongClickListener mBackgroundClickListener = new View.OnLongClickListener() {
 		public boolean onLongClick(View v) {
 			//TODO (needs to be improved) make dialog for color pick
-			new AlertDialog.Builder(mContext)
+			AlertDialog selectBGColorDialog = new AlertDialog.Builder(mContext)
 			.setTitle("Background Color")
 			.setItems(R.array.background_colors, new DialogInterface.OnClickListener() {
 				@Override
@@ -341,7 +342,9 @@ public class ImagePresenter {
 					hideStatusAndNavibar();
 				}
 			})
-			.show();
+			.create();
+			selectBGColorDialog.setCanceledOnTouchOutside(false);
+			selectBGColorDialog.show();
 			return false;
 		}
 		
